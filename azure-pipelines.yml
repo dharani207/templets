@@ -7,15 +7,35 @@ trigger:
 - main
 
 pool:
-  vmImage: "ubuntu-latest"
+  vmImage: Default
+
+steps :
+- script: echo Hello, world!
+  displayName: 'Run a one-line script'
+steps:
+- task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@0
+  displayName: 'Install Terraform 0.12.3'
+  
+steps:
+- task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV2@2
+  displayName: 'Terraform : init'
+  inputs:
+    backendServiceArm: azureconnection
+    backendAzureRmResourceGroupName: vmrg
+    backendAzureRmStorageAccountName: yamlstorageac0
+    backendAzureRmContainerName: container
+    backendAzureRmKey: test.terraform.tfstate
 
 steps:
-- task: AzureResourceManagerTemplateDeployment@3
-  displayName: 'vnet deploy'
+- task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV2@2
+  displayName: 'Terraform : plan'
   inputs:
-    azureResourceManagerConnection: 'azure connection'
-    subscriptionId: '0d3f9a04-eb28-473e-be1b-29f796b18583'
-    resourceGroupName: vmrg
-    location: 'East US'
-    csmFile: template.json
-    csmParametersFile: parameters.json
+    command: plan
+    environmentServiceNameAzureRM: azureconnection
+
+steps:
+- task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV2@2
+  displayName: 'Terraform : apply'
+  inputs:
+    command: apply
+    environmentServiceNameAzureRM: azureconnection
